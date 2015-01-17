@@ -1,0 +1,2 @@
+<graphics.ml>: package(lablgtk2)
+"deklinacja.native": package(lablgtk2)
