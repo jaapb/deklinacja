@@ -45,7 +45,12 @@ begin
 		let ch = m#response_body#open_value_rd () in
 		ignore (parse_until_aux ch "{{odmiana-rzeczownik-polski" "");
 		let block = parse_template ch in
-		print_endline block
+		let lines = Str.split (Str.regexp_string "\n") block in
+		List.iter (fun l ->
+			Scanf.sscanf l "|%s %s = %s" (fun case number word ->
+				Printf.printf "Case: %s, number: %s -> %s\n" case number word
+			)
+		) lines
 	);
 	pipeline#run ();
 end;;

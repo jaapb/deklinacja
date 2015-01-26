@@ -1,2 +1,4 @@
 <graphics.ml>: package(lablgtk2)
+<wiktionary.ml>: package(netclient), package(netstring)
 "deklinacja.native": package(lablgtk2)
+"main.native": package(netclient)
