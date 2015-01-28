@@ -34,7 +34,6 @@ class noun_box ?width ?height ?packing ?show array =
 		| `OK -> let url = Printf.sprintf "http://pl.wiktionary.org/wiki/%s?action=raw" ew#text in
 			begin
 				List.iter (fun (c, n, w) ->
-					Printf.eprintf "Read (%s %s): %s\n%!" c n w;
 					if Glib.Utf8.collate nom_name c = 0 then
 					begin
 						if Glib.Utf8.collate sg_abbr n = 0 then
@@ -90,6 +89,23 @@ class noun_box ?width ?height ?packing ?show array =
 				d#destroy ()
 			end
 	end in
+	let do_clear () =
+	begin
+		nom_sg#set_text "";
+		gen_sg#set_text "";
+		dat_sg#set_text "";
+		acc_sg#set_text "";
+		ins_sg#set_text "";
+		loc_sg#set_text "";
+		voc_sg#set_text "";
+		nom_pl#set_text "";
+		gen_pl#set_text "";
+		dat_pl#set_text "";
+		acc_pl#set_text "";
+		ins_pl#set_text "";
+		loc_pl#set_text "";
+		voc_pl#set_text ""
+	end in
 	begin
 		let sg_lbl = GMisc.label ~packing:(table#attach ~left:1 ~top:0) () in
 			sg_lbl#set_label "SINGULAR";
@@ -109,9 +125,14 @@ class noun_box ?width ?height ?packing ?show array =
 			loc_lbl#set_label "Locative";
 		let voc_lbl = GMisc.label ~packing:(table#attach ~left:0 ~top:7) () in
 			voc_lbl#set_label "Vocative";
-		let btn = GButton.button ~label:"Read Wiktionary..."
-			~packing:(table#attach ~left:0 ~right:3 ~top:8) () in
-			btn#connect#clicked ~callback:read_wikt
+		let btn1 = GButton.button ~label:"Read Wiktionary..."
+			~packing:(table#attach ~left:0 ~top:8) () in
+			btn1#connect#clicked ~callback:read_wikt;
+		let btn2 = GButton.button ~label:"Save"
+			~packing:(table#attach ~left:1 ~top:8) () in
+		let btn3 = GButton.button ~label:"Clear"
+			~packing:(table#attach ~left:2 ~top:8) () in
+			btn3#connect#clicked ~callback:do_clear
 	end
 end;;
 
