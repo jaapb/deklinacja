@@ -1,12 +1,22 @@
 class noun_box ?width ?height ?packing ?show array =
 	
-	let table = GPack.table ~rows:8 ~columns:3 ~col_spacings:2 ?width ?height
+	let table = GPack.table ~rows:9 ~columns:3 ~col_spacings:2 ?width ?height
 		?packing ?show () in	
 
 	object (self)
 		inherit GObj.widget table#as_widget
 
 	method init =
+	let read_wikt () =
+	begin
+		let d = GWindow.message_dialog ~modal:true ~message_type:`QUESTION
+			~buttons:GWindow.Buttons.ok_cancel ~title:"Select word" () in
+		match d#run () with
+		| `CANCEL | `DELETE_EVENT -> d#destroy ()
+		| `OK -> begin
+				d#destroy ()
+			end
+	end in
 	begin
 		let sg_lbl = GMisc.label ~packing:(table#attach ~left:1 ~top:0) () in
 			sg_lbl#set_label "SINGULAR";
@@ -40,7 +50,9 @@ class noun_box ?width ?height ?packing ?show array =
 		let ins_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:5) () in
 		let loc_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:6) () in
 		let voc_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:7) () in
-			()
+		let btn = GButton.button ~label:"Read Wiktionary..."
+			~packing:(table#attach ~left:0 ~right:3 ~top:8) () in
+			btn#connect#clicked ~callback:read_wikt
 	end
 end;;
 
