@@ -37,6 +37,7 @@ begin
 end;;
 	
 let get_tree url =
+let result = ref [] in
 begin
 	let pipeline = new pipeline in
 	let get_call = new get url in
@@ -46,11 +47,15 @@ begin
 		ignore (parse_until_aux ch "{{odmiana-rzeczownik-polski" "");
 		let block = parse_template ch in
 		let lines = Str.split (Str.regexp_string "\n") block in
-		List.iter (fun l ->
-			Scanf.sscanf l "|%s %s = %s" (fun case number word ->
-				Printf.printf "Case: %s, number: %s -> %s\n" case number word
-			)
-		) lines
+		result := List.fold_left (fun acc l ->
+			try
+				Scanf.sscanf l "|%s %s = %s" (fun case number word ->
+					(Glib.Utf8.lowercase case, Glib.Utf8.lowercase number,
+						Glib.Utf8.lowercase word)::acc
+				)
+			with Scanf.Scan_failure _ -> acc
+		) [] lines
 	);
 	pipeline#run ();
+	!result
 end;;
