@@ -1,4 +1,5 @@
 <graphics.ml>: package(lablgtk2)
 <wiktionary.ml>: package(netclient), package(netstring), package(lablgtk2)
 <polish.ml>: package(lablgtk2)
-"deklinacja.native": package(lablgtk2), package(netclient)
+<database.ml>: syntax(camlp4o), package(pgocaml.syntax)
+"deklinacja.native": package(lablgtk2), package(netclient), package(pgocaml)
