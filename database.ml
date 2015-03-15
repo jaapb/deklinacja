@@ -1,25 +1,65 @@
+let dbh = ref None
+
 let open_database () =
 begin
-	PGOCaml.connect ~host:!Config.db_host ~user:!Config.db_user
-		~database:!Config.db_name ()
+	dbh := Some (PGOCaml.connect ~host:!Config.db_host ~user:!Config.db_user
+		~password:!Config.db_password ~database:!Config.db_name ())
 end;;
 
-let close_database dbh =
+let close_database () =
 begin
-	PGOCaml.close dbh
+	match !dbh with
+	| None -> ()
+	| Some h -> PGOCaml.close h
 end;;
 
-let create_tables dbh =
+let create_tables () =
 begin
-	PGSQL(dbh) "CREATE TABLE words \
-		(id SERIAL PRIMARY KEY, \
-		word TEXT NOT NULL)";
-	PGSQL(dbh) "CREATE TABLE declensions \
-		(word_id INTEGER REFERENCES words(id) NOT NULL, \
-		\"case\" VARCHAR(32) NOT NULL, \
-		word TEXT NOT NULL)"
+	match !dbh with
+	| None -> raise (Failure "database not opened")
+	| Some h ->
+			PGSQL(h) "CREATE TABLE words \
+				(id SERIAL PRIMARY KEY, \
+				word TEXT NOT NULL)";
+			PGSQL(h) "CREATE TABLE declensions \
+				(word_id INTEGER REFERENCES words(id) NOT NULL, \
+				case_nr INTEGER NOT NULL, \
+				number CHAR(1) NOT NULL, \
+				word TEXT NOT NULL)"
 end;;
 
-let save_word sgl pll =
+let find_word w =
+begin
+	match !dbh with
+	| None -> raise (Failure "database not opened")
+	| Some h -> List.map Int32.to_int
+			(PGSQL(h) "SELECT id FROM words WHERE word = $w")
+end;;
+
+let add_word word sgl pll =
+begin
+	match !dbh with
+	| None -> raise (Failure "database not opened")
+	| Some h ->
+		let ids = PGSQL(h) "INSERT INTO words (id, word) VALUES (DEFAULT, $word) \
+			RETURNING id" in
+		begin
+			match ids with
+			| [] -> raise (Failure "oopsie, empty list.")
+			| [id] -> List.iteri (fun i (c, w) ->
+					let c = Int32.of_int i in
+					PGSQL(h) "INSERT INTO declensions (word_id, case_nr, number, word) \
+						VALUES ($id, $c, 'S', $w)"
+				) sgl;
+				List.iteri (fun i (c, w) -> 
+					let c = Int32.of_int i in
+					PGSQL(h) "INSERT INTO declensions (word_id, case_nr, number, word) \
+						VALUES ($id, $c, 'P', $w)"
+				) pll
+			| _ -> raise (Failure "oopsier, too many elements in list.")
+		end
+end;;
+
+let update_word id sgl pl =
 begin
 end;;

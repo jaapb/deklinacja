@@ -35,6 +35,21 @@ class noun_box ?width ?height ?packing ?show array =
 				d#destroy ()
 			end
 	end in
+	let save_contents () =
+	begin
+		let singulars = List.mapi (fun i case ->
+			(case, sg_entries.(i)#text)	
+		) cases
+		and plurals = List.mapi (fun i case ->
+			(case, pl_entries.(i)#text)
+		) cases in
+		let nom_sg = try	
+			List.assoc `Nom singulars 
+		with Not_found -> "hyuk" in
+		match Database.find_word nom_sg with
+		| [] -> Database.add_word nom_sg singulars plurals
+		| h::t -> Database.update_word h singulars plurals
+	end in
 	let do_clear () =
 	begin
 		for i = 0 to 6 do
@@ -70,6 +85,7 @@ class noun_box ?width ?height ?packing ?show array =
 			btn1#connect#clicked ~callback:read_wikt;
 		let btn2 = GButton.button ~label:"Save"
 			~packing:(table#attach ~left:1 ~top:8) () in
+			btn2#connect#clicked ~callback:save_contents;
 		let btn3 = GButton.button ~label:"Clear"
 			~packing:(table#attach ~left:2 ~top:8) () in
 			btn3#connect#clicked ~callback:do_clear
