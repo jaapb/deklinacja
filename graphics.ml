@@ -4,20 +4,8 @@ class noun_box ?width ?height ?packing ?show array =
 	
 	let table = GPack.table ~rows:9 ~columns:3 ~col_spacings:2 ?width ?height
 		?packing ?show () in	
-	let nom_sg = GEdit.entry ~packing:(table#attach ~left:1 ~top:1) () in
-	let gen_sg = GEdit.entry ~packing:(table#attach ~left:1 ~top:2) () in
-	let dat_sg = GEdit.entry ~packing:(table#attach ~left:1 ~top:3) () in
-	let acc_sg = GEdit.entry ~packing:(table#attach ~left:1 ~top:4) () in
-	let ins_sg = GEdit.entry ~packing:(table#attach ~left:1 ~top:5) () in
-	let loc_sg = GEdit.entry ~packing:(table#attach ~left:1 ~top:6) () in
-	let voc_sg = GEdit.entry ~packing:(table#attach ~left:1 ~top:7) () in
-	let nom_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:1) () in
-	let gen_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:2) () in
-	let dat_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:3) () in
-	let acc_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:4) () in
-	let ins_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:5) () in
-	let loc_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:6) () in
-	let voc_pl = GEdit.entry ~packing:(table#attach ~left:2 ~top:7) () in
+	let sg_entries = Array.init (List.length cases) (fun c -> GEdit.entry ()) in  
+	let pl_entries = Array.init (List.length cases) (fun c -> GEdit.entry ()) in  
 
 	object (self)
 		inherit GObj.widget table#as_widget
@@ -34,79 +22,31 @@ class noun_box ?width ?height ?packing ?show array =
 		| `OK -> let url = Printf.sprintf "http://pl.wiktionary.org/wiki/%s?action=raw" ew#text in
 			begin
 				List.iter (fun (c, n, w) ->
-					if Glib.Utf8.collate nom_name c = 0 then
-					begin
-						if Glib.Utf8.collate sg_abbr n = 0 then
-							nom_sg#set_text w
-						else
-							nom_pl#set_text w	
-					end
-					else if Glib.Utf8.collate gen_name c = 0 then
-					begin
-						if Glib.Utf8.collate sg_abbr n = 0 then
-							gen_sg#set_text w
-						else
-							gen_pl#set_text w	
-					end
-					else if Glib.Utf8.collate dat_name c = 0 then
-					begin
-						if Glib.Utf8.collate sg_abbr n = 0 then
-							dat_sg#set_text w
-						else
-							dat_pl#set_text w	
-					end
-					else if Glib.Utf8.collate acc_name c = 0 then
-					begin
-						if Glib.Utf8.collate sg_abbr n = 0 then
-							acc_sg#set_text w
-						else
-							acc_pl#set_text w	
-					end
-					else if Glib.Utf8.collate ins_name c = 0 then
-					begin
-						if Glib.Utf8.collate sg_abbr n = 0 then
-							ins_sg#set_text w
-						else
-							ins_pl#set_text w	
-					end
-					else if Glib.Utf8.collate loc_name c = 0 then
-					begin
-						if Glib.Utf8.collate sg_abbr n = 0 then
-							loc_sg#set_text w
-						else
-							loc_pl#set_text w	
-					end
-					else if Glib.Utf8.collate voc_name c = 0 then
-					begin
-						if Glib.Utf8.collate sg_abbr n = 0 then
-							voc_sg#set_text w
-						else
-							voc_pl#set_text w	
-					end
-					else
-						Printf.eprintf "Er... %s %s\n%!" c n
+					List.iteri (fun i case ->
+						if Glib.Utf8.collate (case_name	case) c = 0 then
+						begin
+							if Glib.Utf8.collate sg_abbr n = 0 then
+								sg_entries.(i)#set_text w
+							else
+								pl_entries.(i)#set_text w	
+						end
+					) cases
         ) (Wiktionary.get_tree url);
 				d#destroy ()
 			end
 	end in
 	let do_clear () =
 	begin
-		nom_sg#set_text "";
-		gen_sg#set_text "";
-		dat_sg#set_text "";
-		acc_sg#set_text "";
-		ins_sg#set_text "";
-		loc_sg#set_text "";
-		voc_sg#set_text "";
-		nom_pl#set_text "";
-		gen_pl#set_text "";
-		dat_pl#set_text "";
-		acc_pl#set_text "";
-		ins_pl#set_text "";
-		loc_pl#set_text "";
-		voc_pl#set_text ""
+		for i = 0 to 6 do
+			sg_entries.(i)#set_text "";
+			pl_entries.(i)#set_text ""
+		done
 	end in
 	begin
+		for i = 0 to 6 do
+			table#attach ~left:1 ~top:(i+1) sg_entries.(i)#coerce;
+			table#attach ~left:2 ~top:(i+1) pl_entries.(i)#coerce
+		done;
 		let sg_lbl = GMisc.label ~packing:(table#attach ~left:1 ~top:0) () in
 			sg_lbl#set_label "SINGULAR";
 		let pl_lbl = GMisc.label ~packing:(table#attach ~left:2 ~top:0) () in  
