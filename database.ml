@@ -60,6 +60,22 @@ begin
 		end
 end;;
 
-let update_word id sgl pl =
+let update_word i sgl pll =
 begin
+	let id = Int32.of_int i in
+	match !dbh with 
+	| None -> raise (Failure "database not opened")
+	| Some h ->
+		begin
+			List.iteri (fun i (c, w) ->
+				let c = Int32.of_int i in
+				PGSQL(h) "UPDATE declensions SET word = $w \
+					WHERE word_id = $id AND case_nr = $c AND number = 'S'"
+			) sgl;
+			List.iteri (fun i (c, w) ->
+				let c = Int32.of_int i in
+				PGSQL(h) "UPDATE declensions SET word = $w \
+					WHERE word_id = $id AND case_nr = $c AND number = 'P'"
+			) pll
+		end
 end;;
