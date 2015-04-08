@@ -10,6 +10,26 @@ class noun_box ?width ?height ?packing ?show array =
 	object (self)
 		inherit GObj.widget table#as_widget
 
+	method set_singular_entry i w =
+	begin
+		sg_entries.(i)#set_text w
+	end
+
+	method set_plural_entry i w =
+	begin
+		pl_entries.(i)#set_text w
+	end
+
+	method get_singular_entry i =
+	begin
+		sg_entries.(i)#text
+	end
+
+	method get_plural_entry i =
+	begin
+		pl_entries.(i)#text
+	end
+
 	method init =
 	let read_wikt () =
 	begin
@@ -19,37 +39,8 @@ class noun_box ?width ?height ?packing ?show array =
 		let ew = GEdit.entry ~packing:d#vbox#add () in
 		match d#run () with
 		| `CANCEL | `DELETE_EVENT -> d#destroy ()
-		| `OK -> let url = Printf.sprintf "http://pl.wiktionary.org/wiki/%s?action=raw" ew#text in
-			begin
-				List.iter (fun (c, n, w) ->
-					List.iteri (fun i case ->
-						if Glib.Utf8.collate (case_name	case) c = 0 then
-						begin
-							if Glib.Utf8.collate sg_abbr n = 0 then
-								sg_entries.(i)#set_text w
-							else
-								pl_entries.(i)#set_text w	
-						end
-					) cases
-        ) (Wiktionary.get_tree url);
-				d#destroy ()
-			end
-	end in
-	let save_contents () =
-	begin
-		let singulars = List.mapi (fun i case ->
-			(case, sg_entries.(i)#text)	
-		) cases
-		and plurals = List.mapi (fun i case ->
-			(case, pl_entries.(i)#text)
-		) cases in
-		let nom_sg = try	
-			List.assoc `Nom singulars 
-		with Not_found -> "hyuk" in
-		match Database.find_word nom_sg with
-		| [] -> Database.add_word nom_sg singulars plurals
-		| h::t -> Database.update_word h singulars plurals
-	end in
+		| `OK -> (Common.read_wiktionary self ew#text; d#destroy ())
+	end in	
 	let do_clear () =
 	begin
 		for i = 0 to 6 do
@@ -85,16 +76,32 @@ class noun_box ?width ?height ?packing ?show array =
 			btn1#connect#clicked ~callback:read_wikt;
 		let btn2 = GButton.button ~label:"Save"
 			~packing:(table#attach ~left:1 ~top:8) () in
-			btn2#connect#clicked ~callback:save_contents;
+			btn2#connect#clicked ~callback:(Common.save_contents self);
 		let btn3 = GButton.button ~label:"Clear"
 			~packing:(table#attach ~left:2 ~top:8) () in
 			btn3#connect#clicked ~callback:do_clear
 	end
 end;;
 
+let do_exercise () =
+begin
+	let d = GWindow.message_dialog ~modal:true ~message_type:`QUESTION
+		~buttons:GWindow.Buttons.ok_cancel ~title:"Question" 
+		~message:"How many questions would you like?" () in
+	let ew = GEdit.entry ~packing:d#vbox#add () in
+	match d#run () with
+	| `CANCEL | `DELETE_EVENT -> d#destroy ()
+	| `OK -> begin
+			(Common.do_exercises (int_of_string ew#text); d#destroy ())
+		end
+end;;
+
 let create_menu mb =
 begin
 	let file_menu = GMenu.menu () in
+	let item = GMenu.menu_item ~label:"Exercise" ~packing:file_menu#append () in
+		item#connect#activate ~callback:do_exercise;
+	ignore (GMenu.separator_item ~packing:file_menu#append ());
 	let item = GMenu.menu_item ~label:"Quit" ~packing:file_menu#append () in
 		item#connect#activate ~callback:GMain.Main.quit;
 	let file_item = GMenu.menu_item ~label:"File" () in
