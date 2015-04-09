@@ -79,3 +79,25 @@ begin
 			) pll
 		end
 end;;
+
+let random_word () =
+begin
+	match !dbh with
+	| None -> raise (Failure "database not opened")
+	| Some h ->
+		begin
+			List.hd (PGSQL(h) "SELECT id, word FROM words \
+				OFFSET floor(random() * (SELECT COUNT(*) FROM words)) LIMIT 1")
+		end
+end;;
+
+let find_answer case_nr number i =
+begin
+	match !dbh with
+	| None -> raise (Failure "database not opened")
+	| Some h ->
+		begin
+			List.hd (PGSQL(h) "SELECT word FROM declensions \
+				WHERE case_nr = $case_nr AND number = $number AND word_id = $i")
+		end
+end;;

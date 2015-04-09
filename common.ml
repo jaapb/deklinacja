@@ -5,7 +5,7 @@ let url = Printf.sprintf "http://pl.wiktionary.org/wiki/%s?action=raw" word in
 begin
 	List.iter (fun (c, n, w) ->
 		List.iteri (fun i case ->
-			if Glib.Utf8.collate (case_name	case) c = 0 then
+			if Glib.Utf8.collate (case_name_pl case) c = 0 then
 			begin
 				if Glib.Utf8.collate sg_abbr n = 0 then
 					nb#set_singular_entry i w
@@ -33,6 +33,30 @@ begin
 end;;
 
 let do_exercises nr =
+let result = ref [] in
 begin
+	for i = 1 to nr
+	do
+		let case = Random.int nr_cases in
+		let number = if Random.bool () then "S" else "P" in
+		let (id, word) = Database.random_word () in
+		let question = Printf.sprintf "What is the %s %s of %s?"
+			(case_name_en (List.nth cases case)) number word in
+		let answer = Database.find_answer (Int32.of_int case) number id in
+		let d = GWindow.message_dialog ~modal:true ~message_type:`QUESTION
+			~buttons:GWindow.Buttons.ok ~title:"Question" ~message:question () in
+		let ew = GEdit.entry ~packing:d#vbox#add () in
+		match d#run () with
+		| `DELETE_EVENT ->
+			begin
+				result := (word, case, number, answer, "")::!result;
+				d#destroy ()
+			end
+		| `OK -> 
+			begin
+				result := (word, case, number, answer, ew#text)::!result;
+				d#destroy ()	
+			end;
+	done;
+	List.rev !result
 end;;
-
