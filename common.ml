@@ -45,7 +45,9 @@ begin
 		let answer = Database.find_answer (Int32.of_int case) number id in
 		let d = GWindow.message_dialog ~modal:true ~message_type:`QUESTION
 			~buttons:GWindow.Buttons.ok ~title:"Question" ~message:question () in
+		d#set_default_response `OK;
 		let ew = GEdit.entry ~packing:d#vbox#add () in
+		ew#set_activates_default true;
 		match d#run () with
 		| `DELETE_EVENT ->
 			begin
