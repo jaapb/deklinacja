@@ -47,6 +47,8 @@ begin
 			~buttons:GWindow.Buttons.ok ~title:"Question" ~message:question () in
 		d#set_default_response `OK;
 		let ew = GEdit.entry ~packing:d#vbox#add () in
+		ew#misc#set_can_default true;
+		ew#misc#grab_focus ();
 		ew#set_activates_default true;
 		match d#run () with
 		| `DELETE_EVENT ->
